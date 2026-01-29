@@ -74,7 +74,11 @@ An AI-powered system that:
    VITE_API_URL=/api
    API_SECRET_KEY=hackforce-secret-2026
    CORS_ORIGINS=https://hackforce-ai-api.vercel.app
+   GROQ_API_KEY=[Your Groq API key]
+   ENVIRONMENT=production
    ```
+   
+   **Note:** Add your actual Groq API key in Vercel dashboard
 
 5. **Click Deploy** → Wait 2-3 minutes → Done! 🎉
 

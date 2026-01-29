@@ -29,11 +29,26 @@ Your **HackForce AI API** is ready for deployment!
    ```
 
 4. **Environment Variables**
+   
+   Click "Environment Variables" and add these:
    ```
-   VITE_API_URL=/api
-   API_SECRET_KEY=hackforce-secret-2026
-   CORS_ORIGINS=https://hackforce-ai-api.vercel.app
+   Name: VITE_API_URL
+   Value: /api
+   
+   Name: API_SECRET_KEY
+   Value: hackforce-secret-2026
+   
+   Name: CORS_ORIGINS
+   Value: https://hackforce-ai-api.vercel.app
+   
+   Name: GROQ_API_KEY
+   Value: [Your Groq API key - see note below]
+   
+   Name: ENVIRONMENT
+   Value: production
    ```
+   
+   **Important:** Add your actual Groq API key (starts with `gsk_`)
 
 5. **Deploy!**
    - Click "Deploy"
