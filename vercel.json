@@ -1,5 +1,6 @@
 {
   "version": 2,
+  "name": "hackforce-ai-api",
   "builds": [
     {
       "src": "backend/app.py",
@@ -24,6 +25,6 @@
     }
   ],
   "env": {
-    "CORS_ORIGINS": "https://your-app.vercel.app"
+    "CORS_ORIGINS": "https://hackforce-ai-api.vercel.app"
   }
 }

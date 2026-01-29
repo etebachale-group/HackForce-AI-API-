@@ -1,5 +1,5 @@
 """
-AI Bug Classification API - Main Application
+HackForce AI API - Main Application
 FastAPI backend for bug classification and developer assignment
 """
 
@@ -16,8 +16,8 @@ load_dotenv()
 
 # Initialize FastAPI app
 app = FastAPI(
-    title="AI Bug Classification API",
-    description="API for automated bug classification and developer assignment",
+    title="HackForce AI API",
+    description="AI-powered bug classification and developer assignment system",
     version="1.0.0",
     docs_url="/docs",
     redoc_url="/redoc"
@@ -150,7 +150,7 @@ def suggest_developer_simple(severity: str) -> str:
 async def root():
     """Root endpoint - API health check"""
     return {
-        "message": "AI Bug Classification API",
+        "message": "HackForce AI API",
         "status": "running",
         "version": "1.0.0",
         "docs": "/docs"

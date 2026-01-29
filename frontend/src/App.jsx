@@ -80,8 +80,8 @@ function App() {
   return (
     <div className="App">
       <header className="app-header">
-        <h1>🐛 AI Bug Classification Dashboard</h1>
-        <p>Automated bug classification and developer assignment</p>
+        <h1>🚀 HackForce AI API Dashboard</h1>
+        <p>AI-powered bug classification and developer assignment</p>
       </header>
 
       {error && (

@@ -1,8 +1,8 @@
-# 🐛 AI Bug Classification API
+# 🚀 HackForce AI API
 
-> Automated bug classification and developer assignment system powered by AI
+> AI-powered bug classification and developer assignment system
 
-[![FastAPI](https://img.shields.io/badge/FastAPI-0.104.1-009688?style=flat&logo=fastapi)](https://fastapi.tiangolo.com/)
+[![FastAPI](https://img.shields.io/badge/FastAPI-0.128.0-009688?style=flat&logo=fastapi)](https://fastapi.tiangolo.com/)
 [![React](https://img.shields.io/badge/React-18.2.0-61DAFB?style=flat&logo=react)](https://react.dev/)
 [![PostgreSQL](https://img.shields.io/badge/PostgreSQL-14+-336791?style=flat&logo=postgresql)](https://www.postgresql.org/)
 [![Python](https://img.shields.io/badge/Python-3.9+-3776AB?style=flat&logo=python)](https://www.python.org/)
@@ -11,7 +11,7 @@
 
 ## 📋 Overview
 
-The AI Bug Classification API is a web-accessible system that:
+HackForce AI API is a web-accessible system that:
 - 🤖 **Automatically classifies** bug reports by severity using AI
 - 👥 **Suggests developer assignment** based on skills and workload
 - 🔄 **Integrates** with Notion and Jira for seamless workflow
