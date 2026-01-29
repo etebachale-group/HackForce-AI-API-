@@ -9,3 +9,7 @@ pydantic-settings==2.1.0
 
 # Environment
 python-dotenv==1.0.0
+
+# Database (PostgreSQL with SQLAlchemy)
+sqlalchemy==2.0.23
+psycopg2-binary==2.9.9

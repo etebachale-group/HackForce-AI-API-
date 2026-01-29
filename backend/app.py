@@ -1,15 +1,21 @@
 """
 HackForce AI API - Main Application
 FastAPI backend for bug classification and developer assignment
+Now with PostgreSQL database integration (Supabase)
 """
 
-from fastapi import FastAPI, HTTPException, Query
+from fastapi import FastAPI, HTTPException, Query, Depends
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field
 from typing import Optional, List
-from datetime import datetime
+from sqlalchemy.orm import Session
 import os
 from dotenv import load_dotenv
+
+# Import database components
+from database import get_db, test_connection, engine, Base
+from models import Bug, Developer, PredictionLog
+import crud
 
 # Load environment variables
 load_dotenv()
@@ -17,14 +23,14 @@ load_dotenv()
 # Initialize FastAPI app
 app = FastAPI(
     title="HackForce AI API",
-    description="AI-powered bug classification and developer assignment system",
-    version="1.0.0",
+    description="AI-powered bug classification and developer assignment system with PostgreSQL",
+    version="2.0.0",
     docs_url="/docs",
     redoc_url="/redoc"
 )
 
 # CORS Configuration
-origins = os.getenv("CORS_ORIGINS", "http://localhost:3000").split(",")
+origins = os.getenv("CORS_ORIGINS", "http://localhost:3000,http://localhost:3001").split(",")
 app.add_middleware(
     CORSMiddleware,
     allow_origins=origins,
@@ -34,7 +40,32 @@ app.add_middleware(
 )
 
 # ============================================================================
-# Pydantic Models
+# Startup Event - Create tables and test connection
+# ============================================================================
+
+@app.on_event("startup")
+async def startup_event():
+    """
+    Run on application startup
+    Creates database tables if they don't exist
+    """
+    print("🚀 Starting HackForce AI API...")
+    
+    # Test database connection
+    if test_connection():
+        print("✅ Database connection successful")
+    else:
+        print("❌ Database connection failed - check DATABASE_URL")
+    
+    # Create tables if they don't exist
+    try:
+        Base.metadata.create_all(bind=engine)
+        print("✅ Database tables ready")
+    except Exception as e:
+        print(f"❌ Error creating tables: {e}")
+
+# ============================================================================
+# Pydantic Models for Request/Response
 # ============================================================================
 
 class BugCreate(BaseModel):
@@ -49,6 +80,7 @@ class BugUpdate(BaseModel):
     description: Optional[str] = Field(None, min_length=10)
     status: Optional[str] = Field(None, pattern="^(Open|In Progress|Resolved|Closed)$")
     assigned_developer: Optional[str] = None
+    severity: Optional[str] = Field(None, pattern="^(Low|Medium|High|Critical)$")
 
 class BugResponse(BaseModel):
     """Model for bug response"""
@@ -64,6 +96,9 @@ class BugResponse(BaseModel):
     created_at: str
     updated_at: Optional[str]
 
+    class Config:
+        from_attributes = True
+
 class PredictionRequest(BaseModel):
     """Model for prediction request"""
     title: str = Field(..., min_length=5, description="Bug title")
@@ -76,20 +111,25 @@ class PredictionResponse(BaseModel):
     suggested_developer: Optional[str]
     reasoning: Optional[str]
 
-class StatsResponse(BaseModel):
-    """Model for statistics response"""
-    total_bugs: int
-    by_severity: dict
-    by_status: dict
-    open_bugs: int
-    closed_bugs: int
+class DeveloperCreate(BaseModel):
+    """Model for creating a developer"""
+    name: str = Field(..., min_length=2, max_length=100)
+    email: str = Field(..., pattern=r'^[\w\.-]+@[\w\.-]+\.\w+$')
+    skills: List[str] = Field(default=[])
+    status: str = Field(default="Active", pattern="^(Active|Inactive|On Leave)$")
 
-# ============================================================================
-# In-Memory Storage (Temporary - Replace with Database)
-# ============================================================================
+class DeveloperResponse(BaseModel):
+    """Model for developer response"""
+    id: int
+    name: str
+    email: str
+    skills: List[str]
+    workload: int
+    status: str
+    created_at: str
 
-bugs_db: List[dict] = []
-bug_id_counter = 1
+    class Config:
+        from_attributes = True
 
 # ============================================================================
 # Helper Functions
@@ -98,225 +138,270 @@ bug_id_counter = 1
 def predict_severity_simple(title: str, description: str) -> tuple[str, float]:
     """
     Simple rule-based severity prediction
-    TODO: Replace with trained ML model
+    TODO: Replace with Groq AI integration
     """
     text = f"{title} {description}".lower()
     
     # Critical keywords
-    critical_keywords = ["critical", "crash", "security", "data loss", "vulnerability", 
-                        "exploit", "breach", "corruption", "fatal"]
+    critical_keywords = [
+        "crash", "security", "data loss", "critical", "urgent", 
+        "vulnerability", "exploit", "breach", "sql injection"
+    ]
     
     # High severity keywords
-    high_keywords = ["error", "bug", "broken", "not working", "failure", "exception",
-                    "cannot", "unable", "blocked"]
-    
-    # Medium severity keywords
-    medium_keywords = ["issue", "problem", "slow", "performance", "delay", "warning",
-                      "incorrect", "unexpected"]
+    high_keywords = [
+        "error", "bug", "broken", "not working", "fails", "failure",
+        "cannot", "unable", "doesn't work", "500 error", "timeout"
+    ]
     
     # Low severity keywords
-    low_keywords = ["typo", "cosmetic", "minor", "suggestion", "enhancement", "improvement"]
+    low_keywords = [
+        "typo", "cosmetic", "minor", "suggestion", "improvement",
+        "enhancement", "ui", "text", "color", "spacing"
+    ]
     
     # Check for keywords
     if any(keyword in text for keyword in critical_keywords):
-        return "Critical", 0.9
+        return "Critical", 0.85
     elif any(keyword in text for keyword in high_keywords):
-        return "High", 0.8
-    elif any(keyword in text for keyword in medium_keywords):
-        return "Medium", 0.7
+        return "High", 0.75
     elif any(keyword in text for keyword in low_keywords):
-        return "Low", 0.6
+        return "Low", 0.70
     else:
-        return "Medium", 0.5
+        return "Medium", 0.60
 
 def suggest_developer_simple(severity: str) -> str:
     """
-    Simple developer assignment
-    TODO: Replace with ML-based assignment
+    Simple developer suggestion based on severity
+    TODO: Replace with smart assignment logic
     """
-    developer_map = {
+    suggestions = {
         "Critical": "Senior Developer",
         "High": "Mid-Level Developer",
         "Medium": "Junior Developer",
-        "Low": "Junior Developer"
+        "Low": "Intern"
     }
-    return developer_map.get(severity, "Unassigned")
+    return suggestions.get(severity, "Available Developer")
 
 # ============================================================================
 # API Endpoints
 # ============================================================================
 
-@app.get("/", tags=["Root"])
+@app.get("/")
 async def root():
-    """Root endpoint - API health check"""
+    """Root endpoint - API information"""
     return {
-        "message": "HackForce AI API",
+        "message": "Welcome to HackForce AI API",
+        "version": "2.0.0",
         "status": "running",
-        "version": "1.0.0",
-        "docs": "/docs"
+        "database": "PostgreSQL (Supabase)",
+        "docs": "/docs",
+        "endpoints": {
+            "bugs": "/api/bugs",
+            "developers": "/api/developers",
+            "predict": "/api/predict",
+            "stats": "/api/stats"
+        }
     }
 
-@app.get("/health", tags=["Root"])
-async def health_check():
+@app.get("/health")
+async def health_check(db: Session = Depends(get_db)):
     """Health check endpoint"""
+    try:
+        # Test database connection
+        db.execute("SELECT 1")
+        db_status = "connected"
+    except Exception as e:
+        db_status = f"error: {str(e)}"
+    
     return {
         "status": "healthy",
-        "timestamp": datetime.utcnow().isoformat()
+        "database": db_status,
+        "version": "2.0.0"
     }
 
-@app.post("/api/bugs", response_model=BugResponse, tags=["Bugs"])
-async def create_bug(bug: BugCreate):
+# ============================================================================
+# Bug Endpoints
+# ============================================================================
+
+@app.post("/api/bugs", response_model=BugResponse, status_code=201)
+async def create_bug(bug: BugCreate, db: Session = Depends(get_db)):
     """
-    Create a new bug report
-    - Automatically predicts severity using AI
-    - Suggests developer assignment
-    - Stores in database
+    Create a new bug with AI severity prediction
     """
-    global bug_id_counter
-    
-    # Predict severity
+    # Predict severity using simple rules (TODO: use Groq AI)
     predicted_severity, confidence = predict_severity_simple(bug.title, bug.description)
+    suggested_dev = suggest_developer_simple(predicted_severity)
     
-    # Suggest developer
-    suggested_developer = suggest_developer_simple(predicted_severity)
-    
-    # Create bug entry
-    new_bug = {
-        "id": bug_id_counter,
+    # Prepare bug data
+    bug_data = {
         "title": bug.title,
         "description": bug.description,
+        "source": bug.source,
         "severity": predicted_severity,
         "predicted_severity": predicted_severity,
         "confidence_score": confidence,
-        "assigned_developer": suggested_developer,
-        "status": "Open",
-        "source": bug.source,
-        "created_at": datetime.utcnow().isoformat(),
-        "updated_at": None
+        "assigned_developer": suggested_dev,
+        "status": "Open"
     }
     
-    bugs_db.append(new_bug)
-    bug_id_counter += 1
+    # Create bug in database
+    db_bug = crud.create_bug(db, bug_data)
     
-    return new_bug
+    # Create prediction log
+    prediction_data = {
+        "bug_id": db_bug.id,
+        "model_version": "rule-based-v1",
+        "predicted_severity": predicted_severity,
+        "confidence": confidence,
+        "features_used": "keyword_matching"
+    }
+    crud.create_prediction_log(db, prediction_data)
+    
+    return db_bug.to_dict()
 
-@app.get("/api/bugs", response_model=List[BugResponse], tags=["Bugs"])
+@app.get("/api/bugs", response_model=List[BugResponse])
 async def list_bugs(
-    severity: Optional[str] = Query(None, description="Filter by severity"),
-    status: Optional[str] = Query(None, description="Filter by status"),
-    source: Optional[str] = Query(None, description="Filter by source"),
-    limit: int = Query(100, ge=1, le=1000, description="Maximum number of results"),
-    skip: int = Query(0, ge=0, description="Number of results to skip")
+    skip: int = Query(0, ge=0),
+    limit: int = Query(100, ge=1, le=500),
+    severity: Optional[str] = Query(None, pattern="^(Low|Medium|High|Critical)$"),
+    status: Optional[str] = Query(None, pattern="^(Open|In Progress|Resolved|Closed)$"),
+    source: Optional[str] = None,
+    db: Session = Depends(get_db)
 ):
     """
-    List all bugs with optional filters
-    - Filter by severity, status, or source
-    - Pagination support
+    Get list of bugs with optional filters
     """
-    filtered_bugs = bugs_db.copy()
-    
-    # Apply filters
-    if severity:
-        filtered_bugs = [b for b in filtered_bugs if b["severity"] == severity]
-    if status:
-        filtered_bugs = [b for b in filtered_bugs if b["status"] == status]
-    if source:
-        filtered_bugs = [b for b in filtered_bugs if b["source"] == source]
-    
-    # Apply pagination
-    paginated_bugs = filtered_bugs[skip:skip + limit]
-    
-    return paginated_bugs
+    bugs = crud.get_bugs(db, skip=skip, limit=limit, severity=severity, status=status, source=source)
+    return [bug.to_dict() for bug in bugs]
 
-@app.get("/api/bugs/{bug_id}", response_model=BugResponse, tags=["Bugs"])
-async def get_bug(bug_id: int):
-    """Get a specific bug by ID"""
-    bug = next((b for b in bugs_db if b["id"] == bug_id), None)
+@app.get("/api/bugs/{bug_id}", response_model=BugResponse)
+async def get_bug(bug_id: int, db: Session = Depends(get_db)):
+    """
+    Get a specific bug by ID
+    """
+    bug = crud.get_bug(db, bug_id)
     if not bug:
-        raise HTTPException(status_code=404, detail=f"Bug with ID {bug_id} not found")
-    return bug
+        raise HTTPException(status_code=404, detail=f"Bug with id {bug_id} not found")
+    return bug.to_dict()
 
-@app.put("/api/bugs/{bug_id}", response_model=BugResponse, tags=["Bugs"])
-async def update_bug(bug_id: int, bug_update: BugUpdate):
-    """Update a bug"""
-    bug = next((b for b in bugs_db if b["id"] == bug_id), None)
-    if not bug:
-        raise HTTPException(status_code=404, detail=f"Bug with ID {bug_id} not found")
+@app.put("/api/bugs/{bug_id}", response_model=BugResponse)
+async def update_bug(bug_id: int, bug_update: BugUpdate, db: Session = Depends(get_db)):
+    """
+    Update a bug
+    """
+    # Prepare update data (only include non-None values)
+    update_data = {k: v for k, v in bug_update.dict().items() if v is not None}
     
-    # Update fields
-    if bug_update.title:
-        bug["title"] = bug_update.title
-    if bug_update.description:
-        bug["description"] = bug_update.description
-    if bug_update.status:
-        bug["status"] = bug_update.status
-    if bug_update.assigned_developer:
-        bug["assigned_developer"] = bug_update.assigned_developer
+    if not update_data:
+        raise HTTPException(status_code=400, detail="No fields to update")
     
-    bug["updated_at"] = datetime.utcnow().isoformat()
+    updated_bug = crud.update_bug(db, bug_id, update_data)
+    if not updated_bug:
+        raise HTTPException(status_code=404, detail=f"Bug with id {bug_id} not found")
     
-    return bug
+    return updated_bug.to_dict()
 
-@app.delete("/api/bugs/{bug_id}", tags=["Bugs"])
-async def delete_bug(bug_id: int):
-    """Delete a bug"""
-    global bugs_db
-    bug = next((b for b in bugs_db if b["id"] == bug_id), None)
-    if not bug:
-        raise HTTPException(status_code=404, detail=f"Bug with ID {bug_id} not found")
+@app.delete("/api/bugs/{bug_id}")
+async def delete_bug(bug_id: int, db: Session = Depends(get_db)):
+    """
+    Delete a bug
+    """
+    success = crud.delete_bug(db, bug_id)
+    if not success:
+        raise HTTPException(status_code=404, detail=f"Bug with id {bug_id} not found")
     
-    bugs_db = [b for b in bugs_db if b["id"] != bug_id]
     return {"message": f"Bug {bug_id} deleted successfully"}
 
-@app.post("/api/predict", response_model=PredictionResponse, tags=["AI"])
-async def predict_severity(request: PredictionRequest):
+@app.get("/api/bugs/search/{search_term}")
+async def search_bugs(search_term: str, db: Session = Depends(get_db)):
     """
-    Predict bug severity without saving
-    - Uses AI model to classify severity
-    - Suggests developer assignment
-    - Returns confidence score
+    Search bugs by title or description
     """
-    severity, confidence = predict_severity_simple(request.title, request.description)
-    suggested_developer = suggest_developer_simple(severity)
+    bugs = crud.search_bugs(db, search_term)
+    return [bug.to_dict() for bug in bugs]
+
+# ============================================================================
+# Developer Endpoints
+# ============================================================================
+
+@app.post("/api/developers", response_model=DeveloperResponse, status_code=201)
+async def create_developer(developer: DeveloperCreate, db: Session = Depends(get_db)):
+    """
+    Create a new developer
+    """
+    # Check if email already exists
+    existing = crud.get_developer_by_email(db, developer.email)
+    if existing:
+        raise HTTPException(status_code=400, detail="Developer with this email already exists")
+    
+    developer_data = developer.dict()
+    db_developer = crud.create_developer(db, developer_data)
+    return db_developer.to_dict()
+
+@app.get("/api/developers", response_model=List[DeveloperResponse])
+async def list_developers(
+    skip: int = Query(0, ge=0),
+    limit: int = Query(100, ge=1, le=500),
+    status: Optional[str] = Query(None, pattern="^(Active|Inactive|On Leave)$"),
+    db: Session = Depends(get_db)
+):
+    """
+    Get list of developers
+    """
+    developers = crud.get_developers(db, skip=skip, limit=limit, status=status)
+    return [dev.to_dict() for dev in developers]
+
+@app.get("/api/developers/{developer_id}", response_model=DeveloperResponse)
+async def get_developer(developer_id: int, db: Session = Depends(get_db)):
+    """
+    Get a specific developer by ID
+    """
+    developer = crud.get_developer(db, developer_id)
+    if not developer:
+        raise HTTPException(status_code=404, detail=f"Developer with id {developer_id} not found")
+    return developer.to_dict()
+
+@app.get("/api/developers/{developer_id}/workload")
+async def get_developer_workload(developer_id: int, db: Session = Depends(get_db)):
+    """
+    Get workload statistics for a developer
+    """
+    workload = crud.get_developer_workload(db, developer_id)
+    if not workload:
+        raise HTTPException(status_code=404, detail=f"Developer with id {developer_id} not found")
+    return workload
+
+# ============================================================================
+# Prediction Endpoint
+# ============================================================================
+
+@app.post("/api/predict", response_model=PredictionResponse)
+async def predict_severity(prediction: PredictionRequest):
+    """
+    Predict bug severity without saving to database
+    """
+    severity, confidence = predict_severity_simple(prediction.title, prediction.description)
+    suggested_dev = suggest_developer_simple(severity)
     
     return {
         "severity": severity,
         "confidence": confidence,
-        "suggested_developer": suggested_developer,
-        "reasoning": "Based on keyword analysis (ML model coming soon)"
+        "suggested_developer": suggested_dev,
+        "reasoning": f"Based on keyword analysis, this bug appears to be {severity} severity"
     }
 
-@app.get("/api/stats", response_model=StatsResponse, tags=["Statistics"])
-async def get_stats():
+# ============================================================================
+# Statistics Endpoint
+# ============================================================================
+
+@app.get("/api/stats")
+async def get_statistics(db: Session = Depends(get_db)):
     """
-    Get bug statistics
-    - Total bugs
-    - Distribution by severity
-    - Distribution by status
+    Get overall statistics for dashboard
     """
-    total = len(bugs_db)
-    
-    by_severity = {
-        "Low": len([b for b in bugs_db if b["severity"] == "Low"]),
-        "Medium": len([b for b in bugs_db if b["severity"] == "Medium"]),
-        "High": len([b for b in bugs_db if b["severity"] == "High"]),
-        "Critical": len([b for b in bugs_db if b["severity"] == "Critical"]),
-    }
-    
-    by_status = {
-        "Open": len([b for b in bugs_db if b["status"] == "Open"]),
-        "In Progress": len([b for b in bugs_db if b["status"] == "In Progress"]),
-        "Resolved": len([b for b in bugs_db if b["status"] == "Resolved"]),
-        "Closed": len([b for b in bugs_db if b["status"] == "Closed"]),
-    }
-    
-    return {
-        "total_bugs": total,
-        "by_severity": by_severity,
-        "by_status": by_status,
-        "open_bugs": by_status["Open"],
-        "closed_bugs": by_status["Closed"]
-    }
+    stats = crud.get_statistics(db)
+    return stats
 
 # ============================================================================
 # Run Application
@@ -328,6 +413,5 @@ if __name__ == "__main__":
         "app:app",
         host="0.0.0.0",
         port=8000,
-        reload=True,
-        log_level="info"
+        reload=True
     )
