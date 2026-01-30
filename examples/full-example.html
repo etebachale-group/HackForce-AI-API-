@@ -4,6 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>HackForce AI API - Ejemplo Completo</title>
+    <!-- Font Awesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" integrity="sha512-iecdLmaskl7CVkqkXNQ/ZH/XLlvWZOJyj7Yy7tcenmpD1ypASozpmT/E0iPtmFIB46ZmdtAc9eNBvH0H/ZpiBw==" crossorigin="anonymous" referrerpolicy="no-referrer" />
     <style>
         * {
             margin: 0;
@@ -18,4 +20,599 @@
         }
         .container {
             max-width: 1200px;
-         
+            margin: 0 auto;
+        }
+        header {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        header h1 {
+            color: #333;
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 15px;
+        }
+        header h1 i {
+            color: #667eea;
+        }
+        header p {
+            color: #666;
+            font-size: 1.1rem;
+        }
+        .grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+        @media (max-width: 768px) {
+            .grid {
+                grid-template-columns: 1fr;
+            }
+        }
+        .card {
+            background: white;
+            padding: 25px;
+            border-radius: 10px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+        }
+        .card h2 {
+            color: #333;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .card h2 i {
+            color: #667eea;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 600;
+            color: #333;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        label i {
+            color: #667eea;
+        }
+        input, textarea, select {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-family: inherit;
+            font-size: 14px;
+        }
+        textarea {
+            min-height: 100px;
+            resize: vertical;
+        }
+        button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 12px 25px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 600;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            transition: transform 0.2s;
+            width: 100%;
+            justify-content: center;
+        }
+        button:hover:not(:disabled) {
+            transform: translateY(-2px);
+        }
+        button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+        .btn-secondary {
+            background: #6c757d;
+        }
+        .btn-danger {
+            background: #dc3545;
+        }
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        .stat-card {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+            text-align: center;
+        }
+        .stat-card i {
+            font-size: 2rem;
+            margin-bottom: 10px;
+        }
+        .stat-card.critical i { color: #dc3545; }
+        .stat-card.high i { color: #fd7e14; }
+        .stat-card.medium i { color: #ffc107; }
+        .stat-card.low i { color: #28a745; }
+        .stat-card.total i { color: #667eea; }
+        .stat-card h3 {
+            font-size: 0.9rem;
+            color: #666;
+            margin-bottom: 5px;
+        }
+        .stat-card .value {
+            font-size: 2rem;
+            font-weight: bold;
+            color: #333;
+        }
+        .bug-list {
+            max-height: 500px;
+            overflow-y: auto;
+        }
+        .bug-item {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 10px;
+            border-left: 4px solid #667eea;
+        }
+        .bug-item h4 {
+            color: #333;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .bug-item p {
+            color: #666;
+            font-size: 0.9rem;
+            margin-bottom: 10px;
+        }
+        .bug-meta {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            font-size: 0.85rem;
+            color: #666;
+        }
+        .bug-meta span {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        .bug-meta i {
+            color: #667eea;
+        }
+        .badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 600;
+        }
+        .badge.Critical {
+            background: #dc3545;
+            color: white;
+        }
+        .badge.High {
+            background: #fd7e14;
+            color: white;
+        }
+        .badge.Medium {
+            background: #ffc107;
+            color: black;
+        }
+        .badge.Low {
+            background: #28a745;
+            color: white;
+        }
+        .badge.Open {
+            background: #007bff;
+            color: white;
+        }
+        .badge.Resolved {
+            background: #28a745;
+            color: white;
+        }
+        .loading {
+            text-align: center;
+            padding: 20px;
+            color: #667eea;
+        }
+        .loading i {
+            font-size: 2rem;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        .empty-state {
+            text-align: center;
+            padding: 40px;
+            color: #999;
+        }
+        .empty-state i {
+            font-size: 3rem;
+            margin-bottom: 15px;
+            color: #ddd;
+        }
+        .alert {
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .alert.success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        .alert.error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        .filters {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+        .filters select {
+            flex: 1;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <header>
+            <h1><i class="fas fa-robot"></i> HackForce AI API</h1>
+            <p>Sistema Completo de Gestión de Bugs con IA</p>
+        </header>
+
+        <!-- Statistics -->
+        <div class="stats">
+            <div class="stat-card total">
+                <i class="fas fa-chart-bar"></i>
+                <h3>Total Bugs</h3>
+                <div class="value" id="totalBugs">0</div>
+            </div>
+            <div class="stat-card critical">
+                <i class="fas fa-exclamation-circle"></i>
+                <h3>Critical</h3>
+                <div class="value" id="criticalBugs">0</div>
+            </div>
+            <div class="stat-card high">
+                <i class="fas fa-fire"></i>
+                <h3>High</h3>
+                <div class="value" id="highBugs">0</div>
+            </div>
+            <div class="stat-card medium">
+                <i class="fas fa-exclamation"></i>
+                <h3>Medium</h3>
+                <div class="value" id="mediumBugs">0</div>
+            </div>
+            <div class="stat-card low">
+                <i class="fas fa-check-circle"></i>
+                <h3>Low</h3>
+                <div class="value" id="lowBugs">0</div>
+            </div>
+        </div>
+
+        <!-- Main Grid -->
+        <div class="grid">
+            <!-- Create Bug Form -->
+            <div class="card">
+                <h2><i class="fas fa-bug"></i> Reportar Nuevo Bug</h2>
+                
+                <div id="alertContainer"></div>
+
+                <form id="bugForm">
+                    <div class="form-group">
+                        <label for="title">
+                            <i class="fas fa-heading"></i> Título
+                        </label>
+                        <input type="text" id="title" required 
+                               placeholder="Ej: Login button not working">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="description">
+                            <i class="fas fa-align-left"></i> Descripción
+                        </label>
+                        <textarea id="description" required 
+                                  placeholder="Describe el problema en detalle..."></textarea>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="source">
+                            <i class="fas fa-map-marker-alt"></i> Fuente
+                        </label>
+                        <input type="text" id="source" 
+                               placeholder="Ej: Production, Testing, etc." 
+                               value="Web Example">
+                    </div>
+
+                    <button type="submit" id="submitBtn">
+                        <i class="fas fa-rocket"></i> Crear Bug con IA
+                    </button>
+                </form>
+            </div>
+
+            <!-- Bug List -->
+            <div class="card">
+                <h2><i class="fas fa-list"></i> Lista de Bugs</h2>
+                
+                <div class="filters">
+                    <select id="filterSeverity">
+                        <option value="">Todas las Severidades</option>
+                        <option value="Critical">Critical</option>
+                        <option value="High">High</option>
+                        <option value="Medium">Medium</option>
+                        <option value="Low">Low</option>
+                    </select>
+                    <button onclick="loadBugs()" class="btn-secondary">
+                        <i class="fas fa-sync-alt"></i> Actualizar
+                    </button>
+                </div>
+
+                <div id="bugListContainer">
+                    <div class="loading">
+                        <i class="fas fa-spinner fa-spin"></i>
+                        <p>Cargando bugs...</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Prediction Test -->
+        <div class="card">
+            <h2><i class="fas fa-brain"></i> Probar Predicción de IA (Sin Guardar)</h2>
+            <div class="grid">
+                <div>
+                    <div class="form-group">
+                        <label for="predictTitle">
+                            <i class="fas fa-heading"></i> Título
+                        </label>
+                        <input type="text" id="predictTitle" 
+                               placeholder="Ej: Database connection timeout">
+                    </div>
+                    <div class="form-group">
+                        <label for="predictDescription">
+                            <i class="fas fa-align-left"></i> Descripción
+                        </label>
+                        <textarea id="predictDescription" 
+                                  placeholder="Describe el problema..."></textarea>
+                    </div>
+                    <button onclick="testPrediction()">
+                        <i class="fas fa-magic"></i> Predecir con IA
+                    </button>
+                </div>
+                <div id="predictionResult"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_URL = 'https://hack-force-ai-api.vercel.app';
+
+        // Load initial data
+        loadStats();
+        loadBugs();
+
+        // Auto-refresh every 30 seconds
+        setInterval(() => {
+            loadStats();
+            loadBugs();
+        }, 30000);
+
+        // Load statistics
+        async function loadStats() {
+            try {
+                const response = await fetch(`${API_URL}/api/stats`);
+                const data = await response.json();
+                
+                document.getElementById('totalBugs').textContent = data.total_bugs || 0;
+                document.getElementById('criticalBugs').textContent = data.by_severity?.Critical || 0;
+                document.getElementById('highBugs').textContent = data.by_severity?.High || 0;
+                document.getElementById('mediumBugs').textContent = data.by_severity?.Medium || 0;
+                document.getElementById('lowBugs').textContent = data.by_severity?.Low || 0;
+            } catch (error) {
+                console.error('Error loading stats:', error);
+            }
+        }
+
+        // Load bugs
+        async function loadBugs() {
+            const container = document.getElementById('bugListContainer');
+            const severity = document.getElementById('filterSeverity').value;
+            
+            container.innerHTML = '<div class="loading"><i class="fas fa-spinner fa-spin"></i><p>Cargando...</p></div>';
+            
+            try {
+                let url = `${API_URL}/api/bugs?limit=50`;
+                if (severity) url += `&severity=${severity}`;
+                
+                const response = await fetch(url);
+                const bugs = await response.json();
+                
+                if (bugs.length === 0) {
+                    container.innerHTML = `
+                        <div class="empty-state">
+                            <i class="fas fa-inbox"></i>
+                            <p>No hay bugs registrados</p>
+                        </div>
+                    `;
+                    return;
+                }
+                
+                container.innerHTML = '<div class="bug-list">' + bugs.map(bug => `
+                    <div class="bug-item">
+                        <h4>
+                            ${bug.title}
+                            <span class="badge ${bug.severity}">${bug.severity}</span>
+                        </h4>
+                        <p>${bug.description}</p>
+                        <div class="bug-meta">
+                            <span><i class="fas fa-hashtag"></i> ID: ${bug.id}</span>
+                            <span><i class="fas fa-user"></i> ${bug.assigned_developer || 'Sin asignar'}</span>
+                            <span><i class="fas fa-bullseye"></i> ${(bug.confidence_score * 100).toFixed(0)}%</span>
+                            <span><i class="fas fa-map-marker-alt"></i> ${bug.source}</span>
+                            <span class="badge ${bug.status}">${bug.status}</span>
+                        </div>
+                    </div>
+                `).join('') + '</div>';
+                
+            } catch (error) {
+                container.innerHTML = `
+                    <div class="alert error">
+                        <i class="fas fa-exclamation-triangle"></i>
+                        Error al cargar bugs: ${error.message}
+                    </div>
+                `;
+            }
+        }
+
+        // Create bug
+        document.getElementById('bugForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const submitBtn = document.getElementById('submitBtn');
+            const alertContainer = document.getElementById('alertContainer');
+            
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Creando...';
+            alertContainer.innerHTML = '';
+            
+            try {
+                const response = await fetch(`${API_URL}/api/bugs`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        title: document.getElementById('title').value,
+                        description: document.getElementById('description').value,
+                        source: document.getElementById('source').value || 'Web Example'
+                    })
+                });
+                
+                if (!response.ok) throw new Error('Error al crear bug');
+                
+                const bug = await response.json();
+                
+                alertContainer.innerHTML = `
+                    <div class="alert success">
+                        <i class="fas fa-check-circle"></i>
+                        Bug creado exitosamente! Severidad: <strong>${bug.severity}</strong> 
+                        (Confianza: ${(bug.confidence_score * 100).toFixed(0)}%)
+                    </div>
+                `;
+                
+                // Reset form
+                document.getElementById('bugForm').reset();
+                
+                // Reload data
+                loadStats();
+                loadBugs();
+                
+            } catch (error) {
+                alertContainer.innerHTML = `
+                    <div class="alert error">
+                        <i class="fas fa-exclamation-triangle"></i>
+                        Error: ${error.message}
+                    </div>
+                `;
+            } finally {
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = '<i class="fas fa-rocket"></i> Crear Bug con IA';
+            }
+        });
+
+        // Test prediction
+        async function testPrediction() {
+            const resultDiv = document.getElementById('predictionResult');
+            const title = document.getElementById('predictTitle').value;
+            const description = document.getElementById('predictDescription').value;
+            
+            if (!title || !description) {
+                resultDiv.innerHTML = `
+                    <div class="alert error">
+                        <i class="fas fa-exclamation-triangle"></i>
+                        Por favor completa ambos campos
+                    </div>
+                `;
+                return;
+            }
+            
+            resultDiv.innerHTML = '<div class="loading"><i class="fas fa-spinner fa-spin"></i><p>Analizando...</p></div>';
+            
+            try {
+                const response = await fetch(`${API_URL}/api/predict`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ title, description })
+                });
+                
+                const data = await response.json();
+                
+                resultDiv.innerHTML = `
+                    <div class="card" style="background: #f8f9fa; margin: 0;">
+                        <h3 style="margin-bottom: 15px; display: flex; align-items: center; gap: 8px;">
+                            <i class="fas fa-chart-line"></i> Resultado de la Predicción
+                        </h3>
+                        <div style="display: flex; flex-direction: column; gap: 10px;">
+                            <div style="display: flex; align-items: center; gap: 8px;">
+                                <i class="fas fa-exclamation-circle" style="color: #667eea;"></i>
+                                <strong>Severidad:</strong> 
+                                <span class="badge ${data.severity}">${data.severity}</span>
+                            </div>
+                            <div style="display: flex; align-items: center; gap: 8px;">
+                                <i class="fas fa-percentage" style="color: #667eea;"></i>
+                                <strong>Confianza:</strong> ${(data.confidence * 100).toFixed(0)}%
+                            </div>
+                            <div style="display: flex; align-items: center; gap: 8px;">
+                                <i class="fas fa-user" style="color: #667eea;"></i>
+                                <strong>Desarrollador:</strong> ${data.suggested_developer}
+                            </div>
+                            <div style="display: flex; align-items: flex-start; gap: 8px;">
+                                <i class="fas fa-lightbulb" style="color: #667eea; margin-top: 3px;"></i>
+                                <div>
+                                    <strong>Razonamiento:</strong><br>
+                                    ${data.reasoning}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            } catch (error) {
+                resultDiv.innerHTML = `
+                    <div class="alert error">
+                        <i class="fas fa-exclamation-triangle"></i>
+                        Error: ${error.message}
+                    </div>
+                `;
+            }
+        }
+
+        // Filter change
+        document.getElementById('filterSeverity').addEventListener('change', loadBugs);
+    </script>
+</body>
+</html>

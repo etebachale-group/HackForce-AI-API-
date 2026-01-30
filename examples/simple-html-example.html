@@ -4,6 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>HackForce AI API - Ejemplo Simple</title>
+    <!-- Font Awesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" integrity="sha512-iecdLmaskl7CVkqkXNQ/ZH/XLlvWZOJyj7Yy7tcenmpD1ypASozpmT/E0iPtmFIB46ZmdtAc9eNBvH0H/ZpiBw==" crossorigin="anonymous" referrerpolicy="no-referrer" />
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -20,6 +22,16 @@
         }
         h1 {
             color: #333;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        h1 i {
+            color: #667eea;
+        }
+        .subtitle {
+            color: #666;
+            margin: 10px 0 20px 0;
         }
         .form-group {
             margin-bottom: 15px;
@@ -28,6 +40,7 @@
             display: block;
             margin-bottom: 5px;
             font-weight: bold;
+            color: #333;
         }
         input, textarea {
             width: 100%;
@@ -35,39 +48,66 @@
             border: 1px solid #ddd;
             border-radius: 5px;
             box-sizing: border-box;
+            font-family: inherit;
         }
         textarea {
             min-height: 100px;
             resize: vertical;
         }
         button {
-            background: #007bff;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
             padding: 12px 30px;
             border: none;
             border-radius: 5px;
             cursor: pointer;
             font-size: 16px;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            transition: transform 0.2s;
         }
         button:hover {
-            background: #0056b3;
+            transform: translateY(-2px);
+        }
+        button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
         }
         .result {
             margin-top: 20px;
             padding: 15px;
             background: #f8f9fa;
             border-radius: 5px;
+            border-left: 4px solid #667eea;
             display: none;
         }
         .result.show {
             display: block;
+        }
+        .result h3 {
+            color: #333;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .result-item {
+            margin: 10px 0;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .result-item i {
+            color: #667eea;
+            width: 20px;
         }
         .severity {
             display: inline-block;
             padding: 5px 15px;
             border-radius: 20px;
             font-weight: bold;
-            margin: 10px 0;
+            margin-left: 10px;
         }
         .severity.Critical {
             background: #dc3545;
@@ -89,39 +129,56 @@
             display: none;
             text-align: center;
             padding: 20px;
+            color: #667eea;
         }
         .loading.show {
             display: block;
+        }
+        .loading i {
+            font-size: 2rem;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        .error {
+            color: #dc3545;
+            display: flex;
+            align-items: center;
+            gap: 8px;
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <h1>🤖 HackForce AI - Clasificador de Bugs</h1>
-        <p>Ingresa un bug y la IA clasificará su severidad automáticamente</p>
+        <h1><i class="fas fa-robot"></i> HackForce AI - Clasificador de Bugs</h1>
+        <p class="subtitle">Ingresa un bug y la IA clasificará su severidad automáticamente</p>
 
         <form id="bugForm">
             <div class="form-group">
-                <label for="title">Título del Bug:</label>
+                <label for="title"><i class="fas fa-heading"></i> Título del Bug:</label>
                 <input type="text" id="title" required 
                        placeholder="Ej: Database connection timeout">
             </div>
 
             <div class="form-group">
-                <label for="description">Descripción:</label>
+                <label for="description"><i class="fas fa-align-left"></i> Descripción:</label>
                 <textarea id="description" required 
                           placeholder="Describe el problema en detalle..."></textarea>
             </div>
 
-            <button type="submit">🚀 Clasificar con IA</button>
+            <button type="submit" id="submitBtn">
+                <i class="fas fa-rocket"></i> Clasificar con IA
+            </button>
         </form>
 
         <div class="loading" id="loading">
-            <p>⏳ Analizando con IA...</p>
+            <i class="fas fa-spinner fa-spin"></i>
+            <p>Analizando con IA...</p>
         </div>
 
         <div class="result" id="result">
-            <h3>📊 Resultado:</h3>
+            <h3><i class="fas fa-chart-line"></i> Resultado:</h3>
             <div id="resultContent"></div>
         </div>
     </div>
@@ -135,8 +192,11 @@
             // Obtener valores del formulario
             const title = document.getElementById('title').value;
             const description = document.getElementById('description').value;
+            const submitBtn = document.getElementById('submitBtn');
 
             // Mostrar loading
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Analizando...';
             document.getElementById('loading').classList.add('show');
             document.getElementById('result').classList.remove('show');
 
@@ -164,20 +224,37 @@
                 document.getElementById('result').classList.add('show');
                 
                 document.getElementById('resultContent').innerHTML = `
-                    <p><strong>Severidad:</strong> 
+                    <div class="result-item">
+                        <i class="fas fa-exclamation-circle"></i>
+                        <strong>Severidad:</strong> 
                         <span class="severity ${data.severity}">${data.severity}</span>
-                    </p>
-                    <p><strong>Confianza:</strong> ${(data.confidence * 100).toFixed(0)}%</p>
-                    <p><strong>Desarrollador Sugerido:</strong> ${data.suggested_developer}</p>
-                    <p><strong>Razonamiento:</strong> ${data.reasoning}</p>
+                    </div>
+                    <div class="result-item">
+                        <i class="fas fa-percentage"></i>
+                        <strong>Confianza:</strong> ${(data.confidence * 100).toFixed(0)}%
+                    </div>
+                    <div class="result-item">
+                        <i class="fas fa-user"></i>
+                        <strong>Desarrollador Sugerido:</strong> ${data.suggested_developer}
+                    </div>
+                    <div class="result-item">
+                        <i class="fas fa-lightbulb"></i>
+                        <strong>Razonamiento:</strong> ${data.reasoning}
+                    </div>
                 `;
 
             } catch (error) {
                 document.getElementById('loading').classList.remove('show');
                 document.getElementById('result').classList.add('show');
                 document.getElementById('resultContent').innerHTML = `
-                    <p style="color: red;">❌ Error: ${error.message}</p>
+                    <p class="error">
+                        <i class="fas fa-exclamation-triangle"></i>
+                        Error: ${error.message}
+                    </p>
                 `;
+            } finally {
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = '<i class="fas fa-rocket"></i> Clasificar con IA';
             }
         });
     </script>
