@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HackForce AI - API Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background: #0f172a;
+            color: #f1f5f9;
+        }
+        h1 {
+            color: #6366f1;
+        }
+        .test-section {
+            background: #1e293b;
+            border: 1px solid #475569;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+        button {
+            background: #6366f1;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 6px;
+            cursor: pointer;
+            margin: 5px;
+            font-size: 14px;
+        }
+        button:hover {
+            background: #4f46e5;
+        }
+        .result {
+            background: #0f172a;
+            border: 1px solid #334155;
+            border-radius: 6px;
+            padding: 15px;
+            margin-top: 10px;
+            white-space: pre-wrap;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        .success {
+            color: #10b981;
+        }
+        .error {
+            color: #ef4444;
+        }
+        .info {
+            color: #94a3b8;
+        }
+        input, textarea {
+            width: 100%;
+            padding: 10px;
+            margin: 10px 0;
+            background: #0f172a;
+            border: 1px solid #475569;
+            border-radius: 6px;
+            color: #f1f5f9;
+            font-family: inherit;
+        }
+        textarea {
+            min-height: 100px;
+            resize: vertical;
+        }
+    </style>
+</head>
+<body>
+    <h1>🧪 HackForce AI - API Test Tool</h1>
+    <p class="info">Prueba los endpoints de la API directamente desde el navegador</p>
+
+    <!-- Test 1: Health Check -->
+    <div class="test-section">
+        <h2>1. Health Check</h2>
+        <button onclick="testHealth()">🏥 Test /health</button>
+        <div id="health-result" class="result"></div>
+    </div>
+
+    <!-- Test 2: API Info -->
+    <div class="test-section">
+        <h2>2. API Info</h2>
+        <button onclick="testRoot()">ℹ️ Test / (root)</button>
+        <div id="root-result" class="result"></div>
+    </div>
+
+    <!-- Test 3: Get Stats -->
+    <div class="test-section">
+        <h2>3. Statistics</h2>
+        <button onclick="testStats()">📊 Test /api/stats</button>
+        <div id="stats-result" class="result"></div>
+    </div>
+
+    <!-- Test 4: List Bugs -->
+    <div class="test-section">
+        <h2>4. List Bugs</h2>
+        <button onclick="testBugs()">🐛 Test /api/bugs</button>
+        <div id="bugs-result" class="result"></div>
+    </div>
+
+    <!-- Test 5: Create Bug -->
+    <div class="test-section">
+        <h2>5. Create Bug (with AI Classification)</h2>
+        <input type="text" id="bug-title" placeholder="Bug Title" value="Login button not responding">
+        <textarea id="bug-description" placeholder="Bug Description">When users click the login button, nothing happens. No error message is shown. This is blocking all users from accessing the system and needs immediate attention.</textarea>
+        <button onclick="testCreateBug()">🚀 Create Bug with AI</button>
+        <div id="create-result" class="result"></div>
+    </div>
+
+    <!-- Test 6: Predict Severity -->
+    <div class="test-section">
+        <h2>6. Predict Severity (AI Only)</h2>
+        <input type="text" id="predict-title" placeholder="Bug Title" value="Database connection timeout">
+        <textarea id="predict-description" placeholder="Bug Description">The application cannot connect to the database. Users are seeing error 500. This is affecting production environment.</textarea>
+        <button onclick="testPredict()">🤖 Predict with AI</button>
+        <div id="predict-result" class="result"></div>
+    </div>
+
+    <!-- Test All -->
+    <div class="test-section">
+        <h2>🎯 Run All Tests</h2>
+        <button onclick="runAllTests()" style="background: #10b981; font-size: 16px; padding: 15px 30px;">▶️ Run All Tests</button>
+    </div>
+
+    <script>
+        const API_BASE = 'https://hack-force-ai-api.vercel.app';
+
+        function log(elementId, message, type = 'info') {
+            const element = document.getElementById(elementId);
+            const timestamp = new Date().toLocaleTimeString();
+            const color = type === 'success' ? 'success' : type === 'error' ? 'error' : 'info';
+            element.innerHTML = `<span class="${color}">[${timestamp}] ${message}</span>`;
+        }
+
+        async function testHealth() {
+            log('health-result', '⏳ Testing...', 'info');
+            try {
+                const response = await fetch(`${API_BASE}/health`);
+                const data = await response.json();
+                log('health-result', `✅ SUCCESS (${response.status})\n${JSON.stringify(data, null, 2)}`, 'success');
+            } catch (error) {
+                log('health-result', `❌ ERROR: ${error.message}`, 'error');
+            }
+        }
+
+        async function testRoot() {
+            log('root-result', '⏳ Testing...', 'info');
+            try {
+                const response = await fetch(`${API_BASE}/`);
+                const data = await response.json();
+                log('root-result', `✅ SUCCESS (${response.status})\n${JSON.stringify(data, null, 2)}`, 'success');
+            } catch (error) {
+                log('root-result', `❌ ERROR: ${error.message}`, 'error');
+            }
+        }
+
+        async function testStats() {
+            log('stats-result', '⏳ Testing...', 'info');
+            try {
+                const response = await fetch(`${API_BASE}/api/stats`);
+                const data = await response.json();
+                log('stats-result', `✅ SUCCESS (${response.status})\n${JSON.stringify(data, null, 2)}`, 'success');
+            } catch (error) {
+                log('stats-result', `❌ ERROR: ${error.message}`, 'error');
+            }
+        }
+
+        async function testBugs() {
+            log('bugs-result', '⏳ Testing...', 'info');
+            try {
+                const response = await fetch(`${API_BASE}/api/bugs`);
+                const data = await response.json();
+                log('bugs-result', `✅ SUCCESS (${response.status})\nFound ${data.length} bugs\n${JSON.stringify(data, null, 2)}`, 'success');
+            } catch (error) {
+                log('bugs-result', `❌ ERROR: ${error.message}`, 'error');
+            }
+        }
+
+        async function testCreateBug() {
+            log('create-result', '⏳ Creating bug with AI classification...', 'info');
+            try {
+                const title = document.getElementById('bug-title').value;
+                const description = document.getElementById('bug-description').value;
+                
+                const response = await fetch(`${API_BASE}/api/bugs`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        title: title,
+                        description: description,
+                        source: 'Browser Test Tool'
+                    })
+                });
+                
+                const data = await response.json();
+                log('create-result', `✅ SUCCESS (${response.status})\n🤖 AI Classification:\n- Severity: ${data.severity}\n- Confidence: ${(data.confidence_score * 100).toFixed(0)}%\n- Developer: ${data.assigned_developer}\n\nFull Response:\n${JSON.stringify(data, null, 2)}`, 'success');
+            } catch (error) {
+                log('create-result', `❌ ERROR: ${error.message}`, 'error');
+            }
+        }
+
+        async function testPredict() {
+            log('predict-result', '⏳ Predicting with AI...', 'info');
+            try {
+                const title = document.getElementById('predict-title').value;
+                const description = document.getElementById('predict-description').value;
+                
+                const response = await fetch(`${API_BASE}/api/predict`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        title: title,
+                        description: description
+                    })
+                });
+                
+                const data = await response.json();
+                log('predict-result', `✅ SUCCESS (${response.status})\n🤖 AI Prediction:\n- Severity: ${data.severity}\n- Confidence: ${(data.confidence * 100).toFixed(0)}%\n- Suggested Developer: ${data.suggested_developer}\n- Reasoning: ${data.reasoning}\n\nFull Response:\n${JSON.stringify(data, null, 2)}`, 'success');
+            } catch (error) {
+                log('predict-result', `❌ ERROR: ${error.message}`, 'error');
+            }
+        }
+
+        async function runAllTests() {
+            console.log('🚀 Running all tests...');
+            await testHealth();
+            await new Promise(r => setTimeout(r, 500));
+            await testRoot();
+            await new Promise(r => setTimeout(r, 500));
+            await testStats();
+            await new Promise(r => setTimeout(r, 500));
+            await testBugs();
+            console.log('✅ All tests complete!');
+        }
+    </script>
+</body>
+</html>
