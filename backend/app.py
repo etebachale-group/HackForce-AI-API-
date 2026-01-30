@@ -18,7 +18,7 @@ from models import Bug, Developer, PredictionLog
 import crud
 
 # Import Groq AI service
-from services.groq_service import groq_service
+from services.groq_service import get_groq_service
 
 # Load environment variables
 load_dotenv()
@@ -180,8 +180,11 @@ async def create_bug(bug: BugCreate, db: Session = Depends(get_db)):
     """
     Create a new bug with AI severity prediction using Groq
     """
+    # Get Groq service (lazy initialization)
+    groq = get_groq_service()
+    
     # Use Groq AI for classification
-    classification = groq_service.classify_bug_severity(
+    classification = groq.classify_bug_severity(
         title=bug.title,
         description=bug.description
     )
@@ -192,7 +195,7 @@ async def create_bug(bug: BugCreate, db: Session = Depends(get_db)):
     
     # Suggest developer using AI
     if dev_list:
-        dev_suggestion = groq_service.suggest_developer(
+        dev_suggestion = groq.suggest_developer(
             bug_description=f"{bug.title}: {bug.description}",
             severity=classification["severity"],
             developers=dev_list
@@ -349,8 +352,11 @@ async def predict_severity(prediction: PredictionRequest, db: Session = Depends(
     """
     Predict bug severity without saving to database using Groq AI
     """
+    # Get Groq service (lazy initialization)
+    groq = get_groq_service()
+    
     # Use Groq AI for classification
-    classification = groq_service.classify_bug_severity(
+    classification = groq.classify_bug_severity(
         title=prediction.title,
         description=prediction.description
     )
@@ -361,7 +367,7 @@ async def predict_severity(prediction: PredictionRequest, db: Session = Depends(
     
     # Suggest developer using AI
     if dev_list:
-        dev_suggestion = groq_service.suggest_developer(
+        dev_suggestion = groq.suggest_developer(
             bug_description=f"{prediction.title}: {prediction.description}",
             severity=classification["severity"],
             developers=dev_list

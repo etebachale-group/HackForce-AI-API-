@@ -284,5 +284,12 @@ Respond in JSON format:
         }
 
 
-# Create singleton instance
-groq_service = GroqService()
+# Singleton instance - will be created on first use to avoid import-time errors
+groq_service = None
+
+def get_groq_service():
+    """Get or create the Groq service singleton (lazy initialization)"""
+    global groq_service
+    if groq_service is None:
+        groq_service = GroqService()
+    return groq_service
