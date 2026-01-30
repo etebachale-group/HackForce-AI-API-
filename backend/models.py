@@ -1,12 +1,13 @@
 """
 SQLAlchemy ORM Models for HackForce AI API
-Defines database tables: developers, bugs, predictions_log
+Defines database tables: developers, bugs, predictions_log, api_keys
 """
 
 from sqlalchemy import Column, Integer, String, Float, DateTime, Text, ForeignKey, ARRAY
 from sqlalchemy.sql import func
 from sqlalchemy.orm import relationship
 from database import Base
+import secrets
 
 class Developer(Base):
     """
@@ -150,7 +151,6 @@ class APIKey(Base):
     @staticmethod
     def generate_key():
         """Generate a secure random API key"""
-        import secrets
         return f"hf_{secrets.token_urlsafe(48)}"
     
     def to_dict(self, include_key=False):
