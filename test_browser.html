@@ -4,6 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>HackForce AI - API Test</title>
+    <!-- Font Awesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" integrity="sha512-iecdLmaskl7CVkqkXNQ/ZH/XLlvWZOJyj7Yy7tcenmpD1ypASozpmT/E0iPtmFIB46ZmdtAc9eNBvH0H/ZpiBw==" crossorigin="anonymous" referrerpolicy="no-referrer" />
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -74,34 +76,34 @@
     </style>
 </head>
 <body>
-    <h1>🧪 HackForce AI - API Test Tool</h1>
+    <h1><i class="fas fa-flask"></i> HackForce AI - API Test Tool</h1>
     <p class="info">Prueba los endpoints de la API directamente desde el navegador</p>
 
     <!-- Test 1: Health Check -->
     <div class="test-section">
         <h2>1. Health Check</h2>
-        <button onclick="testHealth()">🏥 Test /health</button>
+        <button onclick="testHealth()"><i class="fas fa-heartbeat"></i> Test /health</button>
         <div id="health-result" class="result"></div>
     </div>
 
     <!-- Test 2: API Info -->
     <div class="test-section">
         <h2>2. API Info</h2>
-        <button onclick="testRoot()">ℹ️ Test / (root)</button>
+        <button onclick="testRoot()"><i class="fas fa-info-circle"></i> Test / (root)</button>
         <div id="root-result" class="result"></div>
     </div>
 
     <!-- Test 3: Get Stats -->
     <div class="test-section">
         <h2>3. Statistics</h2>
-        <button onclick="testStats()">📊 Test /api/stats</button>
+        <button onclick="testStats()"><i class="fas fa-chart-bar"></i> Test /api/stats</button>
         <div id="stats-result" class="result"></div>
     </div>
 
     <!-- Test 4: List Bugs -->
     <div class="test-section">
         <h2>4. List Bugs</h2>
-        <button onclick="testBugs()">🐛 Test /api/bugs</button>
+        <button onclick="testBugs()"><i class="fas fa-bug"></i> Test /api/bugs</button>
         <div id="bugs-result" class="result"></div>
     </div>
 
@@ -110,7 +112,7 @@
         <h2>5. Create Bug (with AI Classification)</h2>
         <input type="text" id="bug-title" placeholder="Bug Title" value="Login button not responding">
         <textarea id="bug-description" placeholder="Bug Description">When users click the login button, nothing happens. No error message is shown. This is blocking all users from accessing the system and needs immediate attention.</textarea>
-        <button onclick="testCreateBug()">🚀 Create Bug with AI</button>
+        <button onclick="testCreateBug()"><i class="fas fa-rocket"></i> Create Bug with AI</button>
         <div id="create-result" class="result"></div>
     </div>
 
@@ -119,14 +121,14 @@
         <h2>6. Predict Severity (AI Only)</h2>
         <input type="text" id="predict-title" placeholder="Bug Title" value="Database connection timeout">
         <textarea id="predict-description" placeholder="Bug Description">The application cannot connect to the database. Users are seeing error 500. This is affecting production environment.</textarea>
-        <button onclick="testPredict()">🤖 Predict with AI</button>
+        <button onclick="testPredict()"><i class="fas fa-robot"></i> Predict with AI</button>
         <div id="predict-result" class="result"></div>
     </div>
 
     <!-- Test All -->
     <div class="test-section">
-        <h2>🎯 Run All Tests</h2>
-        <button onclick="runAllTests()" style="background: #10b981; font-size: 16px; padding: 15px 30px;">▶️ Run All Tests</button>
+        <h2><i class="fas fa-bullseye"></i> Run All Tests</h2>
+        <button onclick="runAllTests()" style="background: #10b981; font-size: 16px; padding: 15px 30px;"><i class="fas fa-play"></i> Run All Tests</button>
     </div>
 
     <script>
@@ -136,55 +138,56 @@
             const element = document.getElementById(elementId);
             const timestamp = new Date().toLocaleTimeString();
             const color = type === 'success' ? 'success' : type === 'error' ? 'error' : 'info';
-            element.innerHTML = `<span class="${color}">[${timestamp}] ${message}</span>`;
+            const icon = type === 'success' ? '<i class="fas fa-check-circle"></i>' : type === 'error' ? '<i class="fas fa-times-circle"></i>' : '<i class="fas fa-info-circle"></i>';
+            element.innerHTML = `<span class="${color}">${icon} [${timestamp}] ${message}</span>`;
         }
 
         async function testHealth() {
-            log('health-result', '⏳ Testing...', 'info');
+            log('health-result', 'Testing...', 'info');
             try {
                 const response = await fetch(`${API_BASE}/health`);
                 const data = await response.json();
-                log('health-result', `✅ SUCCESS (${response.status})\n${JSON.stringify(data, null, 2)}`, 'success');
+                log('health-result', `SUCCESS (${response.status})\n${JSON.stringify(data, null, 2)}`, 'success');
             } catch (error) {
-                log('health-result', `❌ ERROR: ${error.message}`, 'error');
+                log('health-result', `ERROR: ${error.message}`, 'error');
             }
         }
 
         async function testRoot() {
-            log('root-result', '⏳ Testing...', 'info');
+            log('root-result', 'Testing...', 'info');
             try {
                 const response = await fetch(`${API_BASE}/`);
                 const data = await response.json();
-                log('root-result', `✅ SUCCESS (${response.status})\n${JSON.stringify(data, null, 2)}`, 'success');
+                log('root-result', `SUCCESS (${response.status})\n${JSON.stringify(data, null, 2)}`, 'success');
             } catch (error) {
-                log('root-result', `❌ ERROR: ${error.message}`, 'error');
+                log('root-result', `ERROR: ${error.message}`, 'error');
             }
         }
 
         async function testStats() {
-            log('stats-result', '⏳ Testing...', 'info');
+            log('stats-result', 'Testing...', 'info');
             try {
                 const response = await fetch(`${API_BASE}/api/stats`);
                 const data = await response.json();
-                log('stats-result', `✅ SUCCESS (${response.status})\n${JSON.stringify(data, null, 2)}`, 'success');
+                log('stats-result', `SUCCESS (${response.status})\n${JSON.stringify(data, null, 2)}`, 'success');
             } catch (error) {
-                log('stats-result', `❌ ERROR: ${error.message}`, 'error');
+                log('stats-result', `ERROR: ${error.message}`, 'error');
             }
         }
 
         async function testBugs() {
-            log('bugs-result', '⏳ Testing...', 'info');
+            log('bugs-result', 'Testing...', 'info');
             try {
                 const response = await fetch(`${API_BASE}/api/bugs`);
                 const data = await response.json();
-                log('bugs-result', `✅ SUCCESS (${response.status})\nFound ${data.length} bugs\n${JSON.stringify(data, null, 2)}`, 'success');
+                log('bugs-result', `SUCCESS (${response.status})\nFound ${data.length} bugs\n${JSON.stringify(data, null, 2)}`, 'success');
             } catch (error) {
-                log('bugs-result', `❌ ERROR: ${error.message}`, 'error');
+                log('bugs-result', `ERROR: ${error.message}`, 'error');
             }
         }
 
         async function testCreateBug() {
-            log('create-result', '⏳ Creating bug with AI classification...', 'info');
+            log('create-result', 'Creating bug with AI classification...', 'info');
             try {
                 const title = document.getElementById('bug-title').value;
                 const description = document.getElementById('bug-description').value;
@@ -202,14 +205,14 @@
                 });
                 
                 const data = await response.json();
-                log('create-result', `✅ SUCCESS (${response.status})\n🤖 AI Classification:\n- Severity: ${data.severity}\n- Confidence: ${(data.confidence_score * 100).toFixed(0)}%\n- Developer: ${data.assigned_developer}\n\nFull Response:\n${JSON.stringify(data, null, 2)}`, 'success');
+                log('create-result', `SUCCESS (${response.status})\n<i class="fas fa-robot"></i> AI Classification:\n- Severity: ${data.severity}\n- Confidence: ${(data.confidence_score * 100).toFixed(0)}%\n- Developer: ${data.assigned_developer}\n\nFull Response:\n${JSON.stringify(data, null, 2)}`, 'success');
             } catch (error) {
-                log('create-result', `❌ ERROR: ${error.message}`, 'error');
+                log('create-result', `ERROR: ${error.message}`, 'error');
             }
         }
 
         async function testPredict() {
-            log('predict-result', '⏳ Predicting with AI...', 'info');
+            log('predict-result', 'Predicting with AI...', 'info');
             try {
                 const title = document.getElementById('predict-title').value;
                 const description = document.getElementById('predict-description').value;
@@ -226,14 +229,14 @@
                 });
                 
                 const data = await response.json();
-                log('predict-result', `✅ SUCCESS (${response.status})\n🤖 AI Prediction:\n- Severity: ${data.severity}\n- Confidence: ${(data.confidence * 100).toFixed(0)}%\n- Suggested Developer: ${data.suggested_developer}\n- Reasoning: ${data.reasoning}\n\nFull Response:\n${JSON.stringify(data, null, 2)}`, 'success');
+                log('predict-result', `SUCCESS (${response.status})\n<i class="fas fa-robot"></i> AI Prediction:\n- Severity: ${data.severity}\n- Confidence: ${(data.confidence * 100).toFixed(0)}%\n- Suggested Developer: ${data.suggested_developer}\n- Reasoning: ${data.reasoning}\n\nFull Response:\n${JSON.stringify(data, null, 2)}`, 'success');
             } catch (error) {
-                log('predict-result', `❌ ERROR: ${error.message}`, 'error');
+                log('predict-result', `ERROR: ${error.message}`, 'error');
             }
         }
 
         async function runAllTests() {
-            console.log('🚀 Running all tests...');
+            console.log('<i class="fas fa-rocket"></i> Running all tests...');
             await testHealth();
             await new Promise(r => setTimeout(r, 500));
             await testRoot();
@@ -241,7 +244,7 @@
             await testStats();
             await new Promise(r => setTimeout(r, 500));
             await testBugs();
-            console.log('✅ All tests complete!');
+            console.log('<i class="fas fa-check"></i> All tests complete!');
         }
     </script>
 </body>

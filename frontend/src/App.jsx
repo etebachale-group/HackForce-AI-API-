@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { bugAPI, statsAPI } from './services/api';
 import './App.css';
 
+// Font Awesome icons via CDN (added in index.html)
 function App() {
   // State
   const [bugs, setBugs] = useState([]);
@@ -148,7 +149,7 @@ function App() {
       {/* Header */}
       <header className="header">
         <div className="header-content">
-          <h1>🤖 HackForce AI</h1>
+          <h1><i className="fas fa-robot"></i> HackForce AI</h1>
           <p>AI-Powered Bug Classification & Developer Assignment</p>
         </div>
       </header>
@@ -156,15 +157,15 @@ function App() {
       {/* Error Banner */}
       {error && (
         <div className="error-banner">
-          <span>⚠️ {error}</span>
-          <button onClick={() => setError(null)}>✕</button>
+          <span><i className="fas fa-exclamation-triangle"></i> {error}</span>
+          <button onClick={() => setError(null)}><i className="fas fa-times"></i></button>
         </div>
       )}
 
       {/* Stats Cards */}
       <div className="stats-grid">
         <div className="stat-card">
-          <div className="stat-icon">📊</div>
+          <div className="stat-icon"><i className="fas fa-chart-bar"></i></div>
           <div className="stat-content">
             <h3>Total Bugs</h3>
             <p className="stat-value">{stats?.total_bugs || 0}</p>
@@ -172,7 +173,7 @@ function App() {
         </div>
         
         <div className="stat-card critical">
-          <div className="stat-icon">🔴</div>
+          <div className="stat-icon"><i className="fas fa-exclamation-circle"></i></div>
           <div className="stat-content">
             <h3>Critical</h3>
             <p className="stat-value">{stats?.by_severity?.Critical || 0}</p>
@@ -180,7 +181,7 @@ function App() {
         </div>
         
         <div className="stat-card high">
-          <div className="stat-icon">🟠</div>
+          <div className="stat-icon"><i className="fas fa-fire"></i></div>
           <div className="stat-content">
             <h3>High</h3>
             <p className="stat-value">{stats?.by_severity?.High || 0}</p>
@@ -188,7 +189,7 @@ function App() {
         </div>
         
         <div className="stat-card medium">
-          <div className="stat-icon">🟡</div>
+          <div className="stat-icon"><i className="fas fa-exclamation"></i></div>
           <div className="stat-content">
             <h3>Medium</h3>
             <p className="stat-value">{stats?.by_severity?.Medium || 0}</p>
@@ -196,7 +197,7 @@ function App() {
         </div>
         
         <div className="stat-card low">
-          <div className="stat-icon">🟢</div>
+          <div className="stat-icon"><i className="fas fa-check-circle"></i></div>
           <div className="stat-content">
             <h3>Low</h3>
             <p className="stat-value">{stats?.by_severity?.Low || 0}</p>
@@ -207,7 +208,7 @@ function App() {
       <div className="main-content">
         {/* Create Bug Form */}
         <div className="card">
-          <h2>🐛 Report New Bug</h2>
+          <h2><i className="fas fa-bug"></i> Report New Bug</h2>
           <form onSubmit={handleSubmit} className="bug-form">
             <div className="form-group">
               <label htmlFor="title">Bug Title *</label>
@@ -244,11 +245,15 @@ function App() {
               className="btn btn-primary"
               disabled={creating}
             >
-              {creating ? '🤖 AI is analyzing...' : '🚀 Submit Bug Report'}
+              {creating ? (
+                <><i className="fas fa-spinner fa-spin"></i> AI is analyzing...</>
+              ) : (
+                <><i className="fas fa-rocket"></i> Submit Bug Report</>
+              )}
             </button>
             
             <p className="form-hint">
-              💡 Our AI will automatically classify severity and assign a developer
+              <i className="fas fa-lightbulb"></i> Our AI will automatically classify severity and assign a developer
             </p>
           </form>
         </div>
@@ -256,7 +261,7 @@ function App() {
         {/* Bug List */}
         <div className="card">
           <div className="card-header">
-            <h2>📋 Bug Reports</h2>
+            <h2><i className="fas fa-list"></i> Bug Reports</h2>
             <div className="filters">
               <select 
                 value={filterSeverity} 
@@ -283,15 +288,15 @@ function App() {
               </select>
               
               <button onClick={loadData} className="btn btn-secondary">
-                🔄 Refresh
+                <i className="fas fa-sync-alt"></i> Refresh
               </button>
             </div>
           </div>
 
           {bugs.length === 0 ? (
             <div className="empty-state">
-              <p>📭 No bugs found</p>
-              <p className="empty-hint">Create your first bug report above!</p>
+              <p><i className="fas fa-inbox"></i></p>
+              <p className="empty-hint">No bugs found. Create your first bug report above!</p>
             </div>
           ) : (
             <div className="bug-list">
@@ -319,20 +324,20 @@ function App() {
                   
                   <div className="bug-meta">
                     <span className="meta-item">
-                      <strong>ID:</strong> #{bug.id}
+                      <strong><i className="fas fa-hashtag"></i> ID:</strong> {bug.id}
                     </span>
                     {bug.assigned_developer && (
                       <span className="meta-item">
-                        <strong>👤 Assigned:</strong> {bug.assigned_developer}
+                        <strong><i className="fas fa-user"></i> Assigned:</strong> {bug.assigned_developer}
                       </span>
                     )}
                     {bug.confidence_score && (
                       <span className="meta-item">
-                        <strong>🎯 AI Confidence:</strong> {(bug.confidence_score * 100).toFixed(0)}%
+                        <strong><i className="fas fa-bullseye"></i> AI Confidence:</strong> {(bug.confidence_score * 100).toFixed(0)}%
                       </span>
                     )}
                     <span className="meta-item">
-                      <strong>📍 Source:</strong> {bug.source}
+                      <strong><i className="fas fa-map-marker-alt"></i> Source:</strong> {bug.source}
                     </span>
                   </div>
                   
@@ -341,7 +346,7 @@ function App() {
                       onClick={() => handleDelete(bug.id)}
                       className="btn btn-danger btn-sm"
                     >
-                      🗑️ Delete
+                      <i className="fas fa-trash"></i> Delete
                     </button>
                   </div>
                 </div>
@@ -355,8 +360,8 @@ function App() {
       <footer className="footer">
         <p>
           Powered by <strong>Groq AI</strong> (Mixtral-8x7b) | 
-          <a href="/docs" target="_blank"> API Docs</a> | 
-          <a href="https://github.com/etebachale-group/HackForce-AI-API-" target="_blank"> GitHub</a>
+          <a href="/docs" target="_blank"><i className="fas fa-book"></i> API Docs</a> | 
+          <a href="https://github.com/etebachale-group/HackForce-AI-API-" target="_blank"><i className="fab fa-github"></i> GitHub</a>
         </p>
       </footer>
     </div>
