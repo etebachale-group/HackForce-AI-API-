@@ -1,72 +1,92 @@
 import axios from 'axios';
 
-// In production (Vercel), use relative path. In development, use localhost
-const API_URL = import.meta.env.VITE_API_URL || 
-  (import.meta.env.PROD ? '' : 'http://localhost:8000');
+// API Base URL - uses relative path in production, localhost in development
+const API_BASE_URL = import.meta.env.PROD ? '' : 'http://localhost:8000';
 
-// Create axios instance with default config
-const axiosInstance = axios.create({
-  baseURL: API_URL,
+// Create axios instance
+const api = axios.create({
+  baseURL: API_BASE_URL,
   headers: {
     'Content-Type': 'application/json',
   },
-  timeout: 10000, // 10 seconds
+  timeout: 10000,
 });
 
 // Request interceptor
-axiosInstance.interceptors.request.use(
+api.interceptors.request.use(
   (config) => {
-    // You can add auth tokens here if needed
-    // const token = localStorage.getItem('token');
-    // if (token) {
-    //   config.headers.Authorization = `Bearer ${token}`;
-    // }
+    console.log(`API Request: ${config.method?.toUpperCase()} ${config.url}`);
     return config;
   },
   (error) => {
+    console.error('Request Error:', error);
     return Promise.reject(error);
   }
 );
 
 // Response interceptor
-axiosInstance.interceptors.response.use(
-  (response) => response,
+api.interceptors.response.use(
+  (response) => {
+    console.log(`API Response: ${response.status} ${response.config.url}`);
+    return response;
+  },
   (error) => {
-    if (error.response) {
-      // Server responded with error
-      console.error('API Error:', error.response.data);
-    } else if (error.request) {
-      // Request made but no response
-      console.error('Network Error:', error.message);
-    } else {
-      // Something else happened
-      console.error('Error:', error.message);
-    }
+    console.error('API Error:', error.response?.data || error.message);
     return Promise.reject(error);
   }
 );
 
-// API methods
-export const api = {
-  // Bug endpoints
-  getBugs: (params = {}) => axiosInstance.get('/api/bugs', { params }),
+// API Methods
+export const bugAPI = {
+  // Get all bugs with optional filters
+  getAll: (params = {}) => api.get('/api/bugs', { params }),
   
-  getBug: (id) => axiosInstance.get(`/api/bugs/${id}`),
+  // Get single bug by ID
+  getById: (id) => api.get(`/api/bugs/${id}`),
   
-  createBug: (data) => axiosInstance.post('/api/bugs', data),
+  // Create new bug
+  create: (data) => api.post('/api/bugs', data),
   
-  updateBug: (id, data) => axiosInstance.put(`/api/bugs/${id}`, data),
+  // Update bug
+  update: (id, data) => api.put(`/api/bugs/${id}`, data),
   
-  deleteBug: (id) => axiosInstance.delete(`/api/bugs/${id}`),
+  // Delete bug
+  delete: (id) => api.delete(`/api/bugs/${id}`),
   
-  // Prediction endpoint
-  predictSeverity: (data) => axiosInstance.post('/api/predict', data),
+  // Search bugs
+  search: (term) => api.get(`/api/bugs/search/${term}`),
+};
+
+export const developerAPI = {
+  // Get all developers
+  getAll: (params = {}) => api.get('/api/developers', { params }),
   
-  // Statistics endpoint
-  getStats: () => axiosInstance.get('/api/stats'),
+  // Get single developer
+  getById: (id) => api.get(`/api/developers/${id}`),
   
+  // Create developer
+  create: (data) => api.post('/api/developers', data),
+  
+  // Get developer workload
+  getWorkload: (id) => api.get(`/api/developers/${id}/workload`),
+};
+
+export const predictionAPI = {
+  // Predict bug severity
+  predict: (data) => api.post('/api/predict', data),
+};
+
+export const statsAPI = {
+  // Get statistics
+  get: () => api.get('/api/stats'),
+};
+
+export const systemAPI = {
   // Health check
-  healthCheck: () => axiosInstance.get('/health'),
+  health: () => api.get('/health'),
+  
+  // API info
+  info: () => api.get('/'),
 };
 
 export default api;
