@@ -1,0 +1,42 @@
+# Git Commands for Deployment
+
+# 1. Check status
+git status
+
+# 2. Add all changes
+git add .
+
+# 3. Commit with descriptive message
+git commit -m "feat: Add Groq AI integration for intelligent bug classification
+
+- Implement GroqService with Mixtral-8x7b model
+- Update POST /api/bugs endpoint with AI classification
+- Update POST /api/predict endpoint with AI prediction
+- Add AI-powered developer assignment
+- Implement fallback system for reliability
+- Add groq package to requirements
+- Create comprehensive documentation
+- Add test scripts for Groq integration
+- Clean up duplicate code and unused functions
+
+Changes:
+- backend/services/groq_service.py (new)
+- backend/app.py (updated)
+- backend/requirements.txt (updated)
+- backend/test_groq.py (new)
+- backend/GROQ_INTEGRATION.md (new)
+- backend/README.md (new)
+- STATUS.md (updated)
+- deploy.md (new)
+- IMPLEMENTATION_SUMMARY.md (new)"
+
+# 4. Push to GitHub (triggers Vercel deployment)
+git push origin main
+
+# 5. Monitor deployment
+# Go to: https://vercel.com/dashboard
+# Check build logs and deployment status
+
+# 6. Test deployed API
+# Replace YOUR_DOMAIN with your Vercel URL
+# curl https://YOUR_DOMAIN.vercel.app/health

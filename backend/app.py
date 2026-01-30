@@ -17,6 +17,9 @@ from database import get_db, test_connection, engine, Base
 from models import Bug, Developer, PredictionLog
 import crud
 
+# Import Groq AI service
+from services.groq_service import groq_service
+
 # Load environment variables
 load_dotenv()
 
@@ -132,58 +135,6 @@ class DeveloperResponse(BaseModel):
         from_attributes = True
 
 # ============================================================================
-# Helper Functions
-# ============================================================================
-
-def predict_severity_simple(title: str, description: str) -> tuple[str, float]:
-    """
-    Simple rule-based severity prediction
-    TODO: Replace with Groq AI integration
-    """
-    text = f"{title} {description}".lower()
-    
-    # Critical keywords
-    critical_keywords = [
-        "crash", "security", "data loss", "critical", "urgent", 
-        "vulnerability", "exploit", "breach", "sql injection"
-    ]
-    
-    # High severity keywords
-    high_keywords = [
-        "error", "bug", "broken", "not working", "fails", "failure",
-        "cannot", "unable", "doesn't work", "500 error", "timeout"
-    ]
-    
-    # Low severity keywords
-    low_keywords = [
-        "typo", "cosmetic", "minor", "suggestion", "improvement",
-        "enhancement", "ui", "text", "color", "spacing"
-    ]
-    
-    # Check for keywords
-    if any(keyword in text for keyword in critical_keywords):
-        return "Critical", 0.85
-    elif any(keyword in text for keyword in high_keywords):
-        return "High", 0.75
-    elif any(keyword in text for keyword in low_keywords):
-        return "Low", 0.70
-    else:
-        return "Medium", 0.60
-
-def suggest_developer_simple(severity: str) -> str:
-    """
-    Simple developer suggestion based on severity
-    TODO: Replace with smart assignment logic
-    """
-    suggestions = {
-        "Critical": "Senior Developer",
-        "High": "Mid-Level Developer",
-        "Medium": "Junior Developer",
-        "Low": "Intern"
-    }
-    return suggestions.get(severity, "Available Developer")
-
-# ============================================================================
 # API Endpoints
 # ============================================================================
 
@@ -227,20 +178,37 @@ async def health_check(db: Session = Depends(get_db)):
 @app.post("/api/bugs", response_model=BugResponse, status_code=201)
 async def create_bug(bug: BugCreate, db: Session = Depends(get_db)):
     """
-    Create a new bug with AI severity prediction
+    Create a new bug with AI severity prediction using Groq
     """
-    # Predict severity using simple rules (TODO: use Groq AI)
-    predicted_severity, confidence = predict_severity_simple(bug.title, bug.description)
-    suggested_dev = suggest_developer_simple(predicted_severity)
+    # Use Groq AI for classification
+    classification = groq_service.classify_bug_severity(
+        title=bug.title,
+        description=bug.description
+    )
+    
+    # Get developers for assignment suggestion
+    developers = crud.get_developers(db, status="Active")
+    dev_list = [dev.to_dict() for dev in developers]
+    
+    # Suggest developer using AI
+    if dev_list:
+        dev_suggestion = groq_service.suggest_developer(
+            bug_description=f"{bug.title}: {bug.description}",
+            severity=classification["severity"],
+            developers=dev_list
+        )
+        suggested_dev = dev_suggestion.get("developer_name", "Unassigned")
+    else:
+        suggested_dev = "Unassigned"
     
     # Prepare bug data
     bug_data = {
         "title": bug.title,
         "description": bug.description,
         "source": bug.source,
-        "severity": predicted_severity,
-        "predicted_severity": predicted_severity,
-        "confidence_score": confidence,
+        "severity": classification["severity"],
+        "predicted_severity": classification["severity"],
+        "confidence_score": classification["confidence"],
         "assigned_developer": suggested_dev,
         "status": "Open"
     }
@@ -251,10 +219,10 @@ async def create_bug(bug: BugCreate, db: Session = Depends(get_db)):
     # Create prediction log
     prediction_data = {
         "bug_id": db_bug.id,
-        "model_version": "rule-based-v1",
-        "predicted_severity": predicted_severity,
-        "confidence": confidence,
-        "features_used": "keyword_matching"
+        "model_version": "groq-mixtral-8x7b",
+        "predicted_severity": classification["severity"],
+        "confidence": classification["confidence"],
+        "features_used": f"AI: {classification.get('reasoning', 'N/A')}"
     }
     crud.create_prediction_log(db, prediction_data)
     
@@ -377,18 +345,36 @@ async def get_developer_workload(developer_id: int, db: Session = Depends(get_db
 # ============================================================================
 
 @app.post("/api/predict", response_model=PredictionResponse)
-async def predict_severity(prediction: PredictionRequest):
+async def predict_severity(prediction: PredictionRequest, db: Session = Depends(get_db)):
     """
-    Predict bug severity without saving to database
+    Predict bug severity without saving to database using Groq AI
     """
-    severity, confidence = predict_severity_simple(prediction.title, prediction.description)
-    suggested_dev = suggest_developer_simple(severity)
+    # Use Groq AI for classification
+    classification = groq_service.classify_bug_severity(
+        title=prediction.title,
+        description=prediction.description
+    )
+    
+    # Get developers for assignment suggestion
+    developers = crud.get_developers(db, status="Active")
+    dev_list = [dev.to_dict() for dev in developers]
+    
+    # Suggest developer using AI
+    if dev_list:
+        dev_suggestion = groq_service.suggest_developer(
+            bug_description=f"{prediction.title}: {prediction.description}",
+            severity=classification["severity"],
+            developers=dev_list
+        )
+        suggested_dev = dev_suggestion.get("developer_name", "Unassigned")
+    else:
+        suggested_dev = "Unassigned"
     
     return {
-        "severity": severity,
-        "confidence": confidence,
+        "severity": classification["severity"],
+        "confidence": classification["confidence"],
         "suggested_developer": suggested_dev,
-        "reasoning": f"Based on keyword analysis, this bug appears to be {severity} severity"
+        "reasoning": classification.get("reasoning", "AI-powered classification")
     }
 
 # ============================================================================
