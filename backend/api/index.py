@@ -5,10 +5,34 @@ import sys
 import os
 
 # Add parent directory to path so we can import from backend
-sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
+backend_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+if backend_dir not in sys.path:
+    sys.path.insert(0, backend_dir)
 
-# Import the FastAPI app
-from app import app
+# Set environment for production
+os.environ.setdefault('ENVIRONMENT', 'production')
 
-# Vercel will use this as the ASGI application
-# No need for a handler function with FastAPI
+try:
+    # Import the FastAPI app
+    from app import app
+    
+    # Vercel will use this as the ASGI application
+    print("✅ FastAPI app loaded successfully")
+    
+except Exception as e:
+    print(f"❌ Error loading app: {e}")
+    import traceback
+    traceback.print_exc()
+    
+    # Create a minimal error app
+    from fastapi import FastAPI
+    app = FastAPI()
+    
+    @app.get("/")
+    @app.get("/api/")
+    async def error_handler():
+        return {
+            "error": "Failed to load application",
+            "message": str(e),
+            "status": "error"
+        }

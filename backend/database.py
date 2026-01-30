@@ -20,9 +20,9 @@ if not DATABASE_URL:
 
 # Create SQLAlchemy engine
 # Note: Supabase uses connection pooling, so we configure accordingly
-# Using psycopg (version 3) which is compatible with Python 3.14
+# Using psycopg2-binary for Vercel compatibility
 engine = create_engine(
-    DATABASE_URL.replace("postgresql://", "postgresql+psycopg://"),  # Use psycopg driver
+    DATABASE_URL,  # psycopg2 is the default driver
     pool_pre_ping=True,  # Verify connections before using them
     pool_size=10,  # Number of connections to maintain
     max_overflow=20,  # Maximum number of connections to create beyond pool_size
