@@ -6,7 +6,14 @@ Uses Groq's LLM API to intelligently classify bug severity
 import os
 import json
 from typing import Dict, Optional
-from groq import Groq
+
+# Try to import Groq, but don't fail if it's not available
+try:
+    from groq import Groq
+    GROQ_AVAILABLE = True
+except ImportError:
+    GROQ_AVAILABLE = False
+    print("⚠️  Groq package not available. Using fallback mode.")
 
 class GroqService:
     """
@@ -15,12 +22,22 @@ class GroqService:
     
     def __init__(self):
         """Initialize Groq client"""
+        if not GROQ_AVAILABLE:
+            print("⚠️  Groq not installed. Using fallback classification.")
+            self.client = None
+            return
+            
         api_key = os.getenv("GROQ_API_KEY")
         if not api_key:
             print("⚠️  Warning: GROQ_API_KEY not found. Using fallback classification.")
             self.client = None
         else:
-            self.client = Groq(api_key=api_key)
+            try:
+                self.client = Groq(api_key=api_key)
+                print("✅ Groq client initialized successfully")
+            except Exception as e:
+                print(f"⚠️  Failed to initialize Groq client: {e}")
+                self.client = None
         
         # Use Mixtral model (fast and accurate)
         self.model = "mixtral-8x7b-32768"
