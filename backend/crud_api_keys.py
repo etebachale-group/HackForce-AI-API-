@@ -4,9 +4,12 @@ CRUD operations for API Keys
 
 from sqlalchemy.orm import Session
 from sqlalchemy import func
-from models import APIKey
+# from models import APIKey  # Temporarily disabled - enable after creating api_keys table
 from datetime import datetime, timedelta
 from typing import Optional, List
+
+# Placeholder - will be enabled when APIKey model is uncommented
+APIKey = None
 
 
 def create_api_key(db: Session, name: str, email: str, company: Optional[str] = None, 

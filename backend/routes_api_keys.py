@@ -8,7 +8,10 @@ from sqlalchemy.orm import Session
 from typing import Optional, List
 from database import get_db
 import crud_api_keys
-from models import APIKey
+# from models import APIKey  # Temporarily disabled - enable after creating api_keys table
+
+# Placeholder - will be enabled when APIKey model is uncommented
+APIKey = None
 
 router = APIRouter(prefix="/api/keys", tags=["API Keys"])
 
