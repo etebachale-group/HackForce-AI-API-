@@ -14,5 +14,5 @@ python-dotenv==1.0.0
 sqlalchemy==2.0.46
 psycopg2-binary==2.9.9
 
-# AI Integration (optional - will use fallback if not available)
-# groq==0.11.0
+# AI Integration
+groq==0.11.0
