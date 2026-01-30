@@ -20,13 +20,15 @@ import crud
 # Import Groq AI service
 from services.groq_service import get_groq_service
 
-# Import API Key routes (optional - only if table exists)
-try:
-    from routes_api_keys import router as api_keys_router
-    API_KEYS_ENABLED = True
-except Exception as e:
-    print(f"⚠️  API Keys module not loaded: {e}")
-    API_KEYS_ENABLED = False
+# Import API Key routes (optional - disabled for now)
+# TODO: Enable after creating api_keys table in Supabase
+API_KEYS_ENABLED = False
+# try:
+#     from routes_api_keys import router as api_keys_router
+#     API_KEYS_ENABLED = True
+# except Exception as e:
+#     print(f"⚠️  API Keys module not loaded: {e}")
+#     API_KEYS_ENABLED = False
 
 # Load environment variables
 load_dotenv()

@@ -1,13 +1,12 @@
 """
 SQLAlchemy ORM Models for HackForce AI API
-Defines database tables: developers, bugs, predictions_log, api_keys
+Defines database tables: developers, bugs, predictions_log
 """
 
 from sqlalchemy import Column, Integer, String, Float, DateTime, Text, ForeignKey, ARRAY
 from sqlalchemy.sql import func
 from sqlalchemy.orm import relationship
 from database import Base
-import secrets
 
 class Developer(Base):
     """
@@ -126,52 +125,57 @@ class PredictionLog(Base):
             "prediction_time": self.prediction_time.isoformat() if self.prediction_time else None
         }
 
+# ============================================================================
+# API Key Model - Temporarily Disabled
+# TODO: Enable after creating api_keys table in Supabase
+# ============================================================================
 
-class APIKey(Base):
-    """
-    API Key model - stores API keys for external developers
-    """
-    __tablename__ = "api_keys"
-    
-    id = Column(Integer, primary_key=True, index=True)
-    key = Column(String(64), unique=True, nullable=False, index=True)
-    name = Column(String(100), nullable=False)  # Friendly name for the key
-    email = Column(String(255), nullable=False, index=True)
-    company = Column(String(100))  # Optional company name
-    is_active = Column(Integer, default=1)  # 1 = active, 0 = inactive (using Integer for SQLite compatibility)
-    usage_count = Column(Integer, default=0)  # Track API usage
-    rate_limit = Column(Integer, default=1000)  # Requests per day
-    created_at = Column(DateTime(timezone=True), server_default=func.now())
-    last_used_at = Column(DateTime(timezone=True))
-    expires_at = Column(DateTime(timezone=True))  # Optional expiration
-    
-    def __repr__(self):
-        return f"<APIKey(id={self.id}, name='{self.name}', email='{self.email}')>"
-    
-    @staticmethod
-    def generate_key():
-        """Generate a secure random API key"""
-        return f"hf_{secrets.token_urlsafe(48)}"
-    
-    def to_dict(self, include_key=False):
-        """Convert model to dictionary"""
-        data = {
-            "id": self.id,
-            "name": self.name,
-            "email": self.email,
-            "company": self.company,
-            "is_active": bool(self.is_active),
-            "usage_count": self.usage_count,
-            "rate_limit": self.rate_limit,
-            "created_at": self.created_at.isoformat() if self.created_at else None,
-            "last_used_at": self.last_used_at.isoformat() if self.last_used_at else None,
-            "expires_at": self.expires_at.isoformat() if self.expires_at else None
-        }
-        
-        if include_key:
-            data["key"] = self.key
-        else:
-            # Show only last 8 characters for security
-            data["key_preview"] = f"...{self.key[-8:]}" if self.key else None
-        
-        return data
+# class APIKey(Base):
+#     """
+#     API Key model - stores API keys for external developers
+#     """
+#     __tablename__ = "api_keys"
+#     
+#     id = Column(Integer, primary_key=True, index=True)
+#     key = Column(String(64), unique=True, nullable=False, index=True)
+#     name = Column(String(100), nullable=False)
+#     email = Column(String(255), nullable=False, index=True)
+#     company = Column(String(100))
+#     is_active = Column(Integer, default=1)
+#     usage_count = Column(Integer, default=0)
+#     rate_limit = Column(Integer, default=1000)
+#     created_at = Column(DateTime(timezone=True), server_default=func.now())
+#     last_used_at = Column(DateTime(timezone=True))
+#     expires_at = Column(DateTime(timezone=True))
+#     
+#     def __repr__(self):
+#         return f"<APIKey(id={self.id}, name='{self.name}', email='{self.email}')>"
+#     
+#     @staticmethod
+#     def generate_key():
+#         """Generate a secure random API key"""
+#         import secrets
+#         return f"hf_{secrets.token_urlsafe(48)}"
+#     
+#     def to_dict(self, include_key=False):
+#         """Convert model to dictionary"""
+#         data = {
+#             "id": self.id,
+#             "name": self.name,
+#             "email": self.email,
+#             "company": self.company,
+#             "is_active": bool(self.is_active),
+#             "usage_count": self.usage_count,
+#             "rate_limit": self.rate_limit,
+#             "created_at": self.created_at.isoformat() if self.created_at else None,
+#             "last_used_at": self.last_used_at.isoformat() if self.last_used_at else None,
+#             "expires_at": self.expires_at.isoformat() if self.expires_at else None
+#         }
+#         
+#         if include_key:
+#             data["key"] = self.key
+#         else:
+#             data["key_preview"] = f"...{self.key[-8:]}" if self.key else None
+#         
+#         return data
+
